@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Feed{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+        <div class="card">
+            <form action="{{ url_for('create_post') }}" method="POST" enctype="multipart/form-data">
+                <div class="card-header">
+                    <h3 class="card-title">Criar nova postagem</h3>
+                </div>
+                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                    <img src="{{ url_for('static', filename='uploads/' + current_user.profile_pic) }}" class="profile-pic-sm">
+                    <div style="flex: 1;">
+                        <textarea name="caption" placeholder="O que está acontecendo no seu mundo mágico?" 
+                                  style="width: 100%; border: 1px solid #eee; border-radius: 10px; padding: 0.8rem; resize: none;"></textarea>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label class="btn btn-outline" style="cursor: pointer;">
+                        <i class="fas fa-camera"></i> Escolher imagem
+                        <input type="file" name="image" accept="image/*" style="display: none;" required>
+                    </label>
+                    <button type="submit" class="btn btn-primary">Publicar</button>
+                </div>
+            </form>
+        </div>
+
+        {% for post in posts %}
+            <div class="card post-card" data-post-id="{{ post.id }}" style="margin-bottom: 2rem;">
+                <div class="card-header">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <img src="{{ url_for('static', filename='uploads/' + post.profile_pic) }}" class="profile-pic-sm">
+                        <div>
+                            <strong>{{ post.username }}</strong>
+                            <span class="fairy-badge fairy-{{ post.fairy_type|lower|replace(' ', '-') }}">
+                                {{ post.fairy_type }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <img src="{{ url_for('static', filename='uploads/' + post.image) }}" 
+                         style="width: 100%; border-radius: 10px; display: block;">
+                </div>
+                
+                {% if post.caption %}
+                    <p style="margin-bottom: 1rem; padding: 0 0.5rem;">{{ post.caption }}</p>
+                {% endif %}
+                
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem; padding: 0 0.5rem;">
+                    <button class="btn btn-sm like-btn {% if post.user_liked %}btn-primary{% else %}btn-outline{% endif %}" 
+                            data-post-id="{{ post.id }}">
+                        <i class="fas fa-heart"></i> 
+                        <span class="like-count">{{ post.likes_count }}</span>
+                    </button>
+                    <button class="btn btn-sm btn-outline comment-toggle" data-post-id="{{ post.id }}">
+                        <i class="fas fa-comment"></i> Comentar
+                    </button>
+                </div>
+                
+                <div class="comments-section" data-post-id="{{ post.id }}" 
+                     style="{% if not post.comments %}display: none;{% endif %} margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem;">
+                    {% for comment in post.comments %}
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <img src="{{ url_for('static', filename='uploads/' + comment.profile_pic) }}" class="profile-pic-xs">
+                            <div>
+                                <strong>{{ comment.username }}</strong>
+                                <p>{{ comment.comment }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    <form class="add-comment-form" data-post-id="{{ post.id }}" 
+                          style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <img src="{{ url_for('static', filename='uploads/' + current_user.profile_pic) }}" class="profile-pic-xs">
+                        <input type="text" name="comment" placeholder="Adicione um comentário..." 
+                               style="flex: 1; border: 1px solid #eee; border-radius: 20px; padding: 0.5rem 1rem;">
+                        <button type="submit" class="btn btn-primary btn-sm">Enviar</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="sidebar">
+        <div class="card" style="text-align: center;">
+            <img src="{{ url_for('static', filename='uploads/' + current_user.profile_pic) }}" class="profile-pic" style="margin-bottom: 1rem;">
+            <h3>{{ current_user.username }}</h3>
+            <span class="fairy-badge fairy-{{ current_user.fairy_type|lower|replace(' ', '-') }}" style="margin-bottom: 1rem;">
+                {{ current_user.fairy_type }}
+            </span>
+            {% if current_user.bio %}
+                <p style="margin-bottom: 1rem;">{{ current_user.bio }}</p>
+            {% endif %}
+            <a href="{{ url_for('profile', username=current_user.username) }}" class="btn btn-outline" style="width: 100%;">
+                Ver perfil
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Sugestões para você</h3>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for user in suggestions %}
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <img src="{{ url_for('static', filename='uploads/' + user.profile_pic) }}" class="profile-pic-xs">
+                            <div>
+                                <strong>{{ user.username }}</strong>
+                                <div class="fairy-badge fairy-{{ user.fairy_type|lower|replace(' ', '-') }}" style="display: inline-block;">
+                                    {{ user.fairy_type }}
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-sm add-friend-btn" data-user-id="{{ user.id }}">
+                            <i class="fas fa-user-plus"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        // Curtir postagem
+        document.querySelectorAll('.like-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const postId = this.dataset.postId;
+                const likeCount = this.querySelector('.like-count');
+                
+                try {
+                    const response = await fetch(`/like_post/${postId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        likeCount.textContent = data.likes_count;
+                        
+                        if (data.liked) {
+                            this.classList.remove('btn-outline');
+                            this.classList.add('btn-primary');
+                        } else {
+                            this.classList.remove('btn-primary');
+                            this.classList.add('btn-outline');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+        
+        // Mostrar/ocultar comentários
+        document.querySelectorAll('.comment-toggle').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const postId = this.dataset.postId;
+                const commentsSection = document.querySelector(`.comments-section[data-post-id="${postId}"]`);
+                commentsSection.style.display = commentsSection.style.display === 'none' ? 'block' : 'none';
+            });
+        });
+        
+        // Adicionar comentário
+        document.querySelectorAll('.add-comment-form').forEach(form => {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const postId = this.dataset.postId;
+                const commentInput = this.querySelector('input[name="comment"]');
+                const commentText = commentInput.value.trim();
+                
+                if (!commentText) return;
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('comment', commentText);
+                    
+                    const response = await fetch(`/add_comment/${postId}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        const comment = data.comment;
+                        const commentsSection = this.parentElement;
+                        
+                        const commentDiv = document.createElement('div');
+                        commentDiv.style.display = 'flex';
+                        commentDiv.style.gap = '1rem';
+                        commentDiv.style.marginBottom = '1rem';
+                        
+                        commentDiv.innerHTML = `
+                            <img src="/static/uploads/${comment.profile_pic}" class="profile-pic-xs">
+                            <div>
+                                <strong>${comment.username}</strong>
+                                <p>${comment.comment}</p>
+                            </div>
+                        `;
+                        
+                        commentsSection.insertBefore(commentDiv, this);
+                        commentInput.value = '';
+                        
+                        // Mostrar a seção de comentários se estiver oculta
+                        commentsSection.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+        
+        // Adicionar amigo
+        document.querySelectorAll('.add-friend-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const userId = this.dataset.userId;
+                
+                try {
+                    const response = await fetch(`/add_friend/${userId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        if (data.action === 'requested') {
+                            this.innerHTML = '<i class="fas fa-clock"></i>';
+                            this.title = 'Solicitação enviada';
+                        } else if (data.action === 'accepted') {
+                            this.innerHTML = '<i class="fas fa-check"></i>';
+                            this.title = 'Agora são amigos';
+                        }
+                    } else if (data.error) {
+                        alert(data.error);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+    </script>
+{% endblock %}

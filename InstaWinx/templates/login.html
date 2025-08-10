@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+    <div style="max-width: 500px; margin: 0 auto; padding: 2rem;">
+        <div class="card" style="text-align: center;">
+            <div style="margin-bottom: 2rem;">
+                <i class="fas fa-fairy" style="font-size: 3rem; color: var(--winx-purple); margin-bottom: 1rem;"></i>
+                <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Bem-vindo ao InstaWinx</h1>
+                <p style="color: #666;">Entre na sua conta para ver o mundo mágico das fadas</p>
+            </div>
+            
+            <form action="{{ url_for('login') }}" method="POST">
+                <div style="margin-bottom: 1.5rem; text-align: left;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Nome de usuário</label>
+                    <input type="text" name="username" required 
+                           style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+                
+                <div style="margin-bottom: 1.5rem; text-align: left;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Senha</label>
+                    <input type="password" name="password" required 
+                           style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                    Entrar
+                </button>
+            </form>
+            
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+                <p>Não tem uma conta? <a href="{{ url_for('register') }}" style="color: var(--winx-blue); font-weight: 500;">Registre-se</a></p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        // Efeito especial de pó de fada na página de login
+        function createFairyDust() {
+            const colors = ['#5d6df5', '#ff6b9d', '#b56ef5', '#4cd964', '#ffcc00'];
+            const dust = document.createElement('div');
+            dust.className = 'fairy-dust';
+            
+            // Posição aleatória na tela
+            const x = Math.random() * window.innerWidth;
+            const y = Math.random() * window.innerHeight;
+            
+            dust.style.left = x + 'px';
+            dust.style.top = y + 'px';
+            dust.style.background = colors[Math.floor(Math.random() * colors.length)];
+            dust.style.animationDuration = (1 + Math.random() * 2) + 's';
+            
+            document.body.appendChild(dust);
+            
+            // Remover após a animação
+            setTimeout(() => {
+                dust.remove();
+            }, 3000);
+        }
+        
+        // Criar pó de fada periodicamente
+        setInterval(createFairyDust, 500);
+    </script>
+{% endblock %}

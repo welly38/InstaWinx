@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar{% endblock %}
+
+{% block content %}
+    <div style="max-width: 500px; margin: 0 auto; padding: 2rem;">
+        <div class="card" style="text-align: center;">
+            <div style="margin-bottom: 2rem;">
+                <i class="fas fa-magic" style="font-size: 3rem; color: var(--winx-pink); margin-bottom: 1rem;"></i>
+                <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Crie sua conta</h1>
+                <p style="color: #666;">Junte-se ao clube das Winx</p>
+            </div>
+            
+            <form action="{{ url_for('register') }}" method="POST">
+                <div style="margin-bottom: 1.5rem; text-align: left;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Nome de usuário</label>
+                    <input type="text" name="username" required 
+                           style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+                
+                <div style="margin-bottom: 1.5rem; text-align: left;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Senha</label>
+                    <input type="password" name="password" required 
+                           style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+                
+                <div style="margin-bottom: 1.5rem; text-align: left;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Tipo de Fada</label>
+                    <select name="fairy_type" required 
+                            style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; background: white;">
+                        <option value="">Selecione seu tipo de fada</option>
+                        {% for type in fairy_types %}
+                            <option value="{{ type }}">{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                    Registrar
+                </button>
+            </form>
+            
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+                <p>Já tem uma conta? <a href="{{ url_for('login') }}" style="color: var(--winx-blue); font-weight: 500;">Entre aqui</a></p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
